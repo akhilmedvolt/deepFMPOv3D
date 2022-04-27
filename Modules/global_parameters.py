@@ -6,7 +6,6 @@ MAX_ATOMS = 12
 MAX_FREE = 3
 MAX_FRAGMENTS = 12
 
-
 # Similarity parameters
 ETA = 0.1
 
@@ -14,11 +13,10 @@ ETA = 0.1
 MAX_SWAP = 2
 FEATURES = 4
 
-
 # Model parameters
 N_DENSE = 128
 N_DENSE2 = 32
-N_LSTM = 32 # Times 2 neurons, since there are both a forward and a backward pass in the bidirectional LSTM
+N_LSTM = 32  # Times 2 neurons, since there are both a forward and a backward pass in the bidirectional LSTM
 
 # RL training
 GAMMA = 0.95
@@ -26,21 +24,17 @@ BATCH_SIZE = 512
 EPOCHS = 1000
 TIMES = 5
 
-methodPsi4=None
-basisPsi4=None
-partialCharges='gasteiger'
+methodPsi4 = None
+basisPsi4 = None
+partialCharges = 'gasteiger'
 
-#Descriptors range
+# Descriptors range
 
-MW_upper_limit=420
-MW_lower_limit=320
+MW_upper_limit = 420
+MW_lower_limit = 320
 
-logp_upper_limit=4.3
-logp_lower_limit=2.3
+logp_upper_limit = 4.3
+logp_lower_limit = 2.3
 
-
-TPSA_upper_limit=65
-TPSA_lower_limit=45
-
-
-
+TPSA_upper_limit = 65
+TPSA_lower_limit = 45

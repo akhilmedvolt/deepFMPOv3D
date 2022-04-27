@@ -2,11 +2,7 @@ from global_parameters import MOL_SPLIT_START, MAX_FREE, MAX_ATOMS, MAX_FRAGMENT
 from rdkit import Chem
 import numpy as np
 
-
-# Main module for handleing the interactions with molecules
-
-
-
+# Main module for handling the interactions with molecules
 
 
 # Atom numbers of noble gases (should not be used as dummy atoms)
@@ -17,9 +13,7 @@ ng_correction = set()
 # Drop salt from SMILES string
 def drop_salt(s):
     s = s.split(".")
-    return [x for _, x in sorted(zip(map(len,s), s), reverse=True)][0]
-
-
+    return [x for _, x in sorted(zip(map(len, s), s), reverse=True)][0]
 
 
 # Check if it is ok to break a bond.
@@ -27,18 +21,16 @@ def drop_salt(s):
 #    1. It is a single bond
 #    2. Either the start or the end atom is in a ring, but not both of them.
 def okToBreak(bond):
-
     if bond.IsInRing():
         return False
 
     if bond.GetBondType() != Chem.rdchem.BondType.SINGLE:
         return False
 
-
     begin_atom = bond.GetBeginAtom()
     end_atom = bond.GetEndAtom()
 
-    if not(begin_atom.IsInRing() or end_atom.IsInRing()):
+    if not (begin_atom.IsInRing() or end_atom.IsInRing()):
         return False
     elif begin_atom.GetAtomicNum() >= MOL_SPLIT_START or \
             end_atom.GetAtomicNum() >= MOL_SPLIT_START:
@@ -47,10 +39,8 @@ def okToBreak(bond):
         return True
 
 
-
 # Divide a molecule into fragments
 def split_molecule(mol):
-
     split_id = MOL_SPLIT_START
 
     res = []
@@ -68,20 +58,18 @@ def split_molecule(mol):
 
 # Function for doing all the nitty gritty splitting work.
 def spf(mol, split_id):
-
     bonds = mol.GetBonds()
     for i in range(len(bonds)):
         if okToBreak(bonds[i]):
             mol = Chem.FragmentOnBonds(mol, [i], addDummies=True, dummyLabels=[(0, 0)])
             # Dummy atoms are always added last
             n_at = mol.GetNumAtoms()
-            mol.GetAtomWithIdx(n_at-1).SetAtomicNum(split_id)
-            mol.GetAtomWithIdx(n_at-2).SetAtomicNum(split_id)
+            mol.GetAtomWithIdx(n_at - 1).SetAtomicNum(split_id)
+            mol.GetAtomWithIdx(n_at - 2).SetAtomicNum(split_id)
             return Chem.rdmolops.GetMolFrags(mol, asMols=True)
 
     # If the molecule could not been split, return original molecule
     return [mol]
-
 
 
 # Build up a chain of fragments from a molecule.
@@ -90,11 +78,11 @@ def spf(mol, split_id):
 def create_chain(splits):
     splits_ids = np.asarray(
         [sorted([a.GetAtomicNum() for a in m.GetAtoms()
-              if a.GetAtomicNum() >= MOL_SPLIT_START]) for m in splits])
+                 if a.GetAtomicNum() >= MOL_SPLIT_START]) for m in splits])
 
     splits_ids = \
         [sorted([a.GetAtomicNum() for a in m.GetAtoms()
-              if a.GetAtomicNum() >= MOL_SPLIT_START]) for m in splits]
+                 if a.GetAtomicNum() >= MOL_SPLIT_START]) for m in splits]
 
     splits2 = []
     mv = np.max(splits_ids)
@@ -110,12 +98,11 @@ def create_chain(splits):
             splits2.append(splits_ids[i])
             splits_ids[i] = []
 
-
     while len(look_for) > 0:
         sid = look_for.pop()
         join_order.append(sid)
         next_mol = [i for i in range(len(splits_ids))
-                      if sid in splits_ids[i]]
+                    if sid in splits_ids[i]]
 
         if len(next_mol) == 0:
             break
@@ -131,10 +118,8 @@ def create_chain(splits):
     return [simplify_splits(mols[i], splits2[i], join_order) for i in range(len(mols))]
 
 
-
 # Split and keep track of the order on how to rebuild the molecule
 def simplify_splits(mol, splits, join_order):
-
     td = {}
     n = 0
     for i in splits:
@@ -144,7 +129,6 @@ def simplify_splits(mol, splits, join_order):
                 n += 1
                 if n in NOBLE_GASES:
                     n += 1
-
 
     for a in mol.GetAtoms():
         k = a.GetAtomicNum()
@@ -156,7 +140,6 @@ def simplify_splits(mol, splits, join_order):
 
 # Go through a molecule and find attachment points and define in which order they should be re-joined.
 def get_join_list(mol):
-
     join = []
     rem = []
     bonds = []
@@ -171,28 +154,27 @@ def get_join_list(mol):
 
             b = a.GetBonds()[0]
             ja = b.GetBeginAtom() if b.GetBeginAtom().GetAtomicNum() < MOL_SPLIT_START else \
-                 b.GetEndAtom()
+                b.GetEndAtom()
             join[an - MOL_SPLIT_START] = ja.GetIdx()
             rem[an - MOL_SPLIT_START] = a.GetIdx()
             bonds[an - MOL_SPLIT_START] = b.GetBondType()
             a.SetAtomicNum(0)
 
-    return [x for x in join if x is not None],\
-           [x for x in bonds if x is not None],\
+    return [x for x in join if x is not None], \
+           [x for x in bonds if x is not None], \
            [x for x in rem if x is not None]
 
 
 # Join a list of fragments toghether into a molecule
 #   Throws an exception if it is not possible to join all fragments.
 def join_fragments(fragments):
-
     to_join = []
     bonds = []
     pairs = []
     del_atoms = []
     new_mol = fragments[0]
 
-    j,b,r = get_join_list(fragments[0])
+    j, b, r = get_join_list(fragments[0])
     to_join += j
     del_atoms += r
     bonds += b
@@ -200,17 +182,15 @@ def join_fragments(fragments):
 
     for f in fragments[1:]:
 
-        j,b,r = get_join_list(f)
+        j, b, r = get_join_list(f)
         p = to_join.pop()
         pb = bonds.pop()
 
         # Check bond types if b[:-1] == pb
         if b[:-1] != pb:
-            assert("Can't connect bonds")
+            assert "Can't connect bonds"
 
-
-
-        pairs.append((p, j[-1] + offset,pb))
+        pairs.append((p, j[-1] + offset, pb))
 
         for x in j[:-1]:
             to_join.append(x + offset)
@@ -221,11 +201,10 @@ def join_fragments(fragments):
         offset += f.GetNumAtoms()
         new_mol = Chem.CombineMols(new_mol, f)
 
+    new_mol = Chem.EditableMol(new_mol)
 
-    new_mol =  Chem.EditableMol(new_mol)
-
-    for a1,a2,b in pairs:
-        new_mol.AddBond(a1,a2, order=b)
+    for a1, a2, b in pairs:
+        new_mol.AddBond(a1, a2, order=b)
 
     # Remove atom with greatest number first:
     for s in sorted(del_atoms, reverse=True):
@@ -233,13 +212,9 @@ def join_fragments(fragments):
     return new_mol.GetMol()
 
 
-
-
-
 # Decide the class of a fragment
 #   Either R-group, Linker or Scaffold
 def get_class(fragment):
-
     is_ring = False
     n = 0
 
@@ -262,11 +237,8 @@ def get_class(fragment):
     return cl
 
 
-
-
 # Enforce conditions on fragments
 def should_use(fragment):
-
     n = 0
     m = 0
     for a in fragment.GetAtoms():
@@ -278,11 +250,8 @@ def should_use(fragment):
     return True
 
 
-
-
 # Split a list of molecules into fragments.
 def get_fragments(mols):
-
     used_mols = np.zeros(len(mols)) != 0
 
     fragments = dict()
@@ -307,7 +276,8 @@ def get_fragments(mols):
 
     return fragments, used_mols
 
-#Neutralize molecules for psi4
+
+# Neutralize molecules for psi4
 def neutralize_atoms(mol):
     pattern = Chem.MolFromSmarts("[+1!h0!$([*]~[-1,-2,-3,-4]),-1!$([*]~[+1,+2,+3,+4])]")
     at_matches = mol.GetSubstructMatches(pattern)
