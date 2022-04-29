@@ -1,16 +1,18 @@
 import rdkit.Chem as Chem
-from rdkit.Chem import Descriptors
+from rdkit.Chem import QED
+
 import numpy as np
 from build_encoding import decode
-import rdkit.Chem.Crippen as Crippen
-import rdkit.Chem.rdMolDescriptors as MolDescriptors
-from rdkit.Chem import Descriptors
-from global_parameters import MW_upper_limit
-from global_parameters import MW_lower_limit
-from global_parameters import logp_upper_limit
-from global_parameters import logp_lower_limit
-from global_parameters import TPSA_upper_limit
-from global_parameters import TPSA_lower_limit
+
+from global_parameters import dock_score_upper_limit
+from global_parameters import dock_score_lower_limit
+from global_parameters import qed_upper_limit
+from global_parameters import qed_lower_limit
+from global_parameters import sas_score_upper_limit
+from global_parameters import sas_score_lower_limit
+
+from Modules.dock_predict import predict_score
+from data_models.rdkit_sa.sa_score import calculate_sascore
 
 # Cache evaluated molecules (rewards are only calculated once)
 evaluated_mols = {}
@@ -30,14 +32,14 @@ def get_key(fs):
 def evaluate_chem_mol(mol):
     try:
         Chem.GetSSSR(mol)
-        clogp = Crippen.MolLogP(mol)
-        mw = MolDescriptors.CalcExactMolWt(mol)
-        tpsa = Descriptors.TPSA(mol)
+        dock_score = predict_score(mol)
+        qed = QED.qed(mol)
+        sas_score = calculate_sascore(mol)
         ret_val = [
             True,
-            MW_lower_limit < mw < MW_upper_limit,
-            logp_lower_limit < clogp < logp_upper_limit,
-            TPSA_lower_limit < tpsa < TPSA_upper_limit
+            dock_score_lower_limit < dock_score < dock_score_upper_limit,
+            qed_lower_limit < qed < qed_upper_limit,
+            sas_score_lower_limit < sas_score < sas_score_upper_limit
         ]
     except:
         ret_val = [False] * 4

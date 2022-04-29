@@ -14,10 +14,11 @@ from keras.regularizers import l2
 from keras.layers import Concatenate, Flatten, Softmax
 from global_parameters import MAX_FRAGMENTS, MAX_SWAP, N_DENSE, \
     N_DENSE2, N_LSTM
-#
-# from tensorflow import keras
 
-from keras import optimizers
+#
+
+# import tensorflow as tf
+from tensorflow.keras.optimizers import Adam
 
 
 # Objective to optimize
@@ -46,7 +47,7 @@ def build_models(inp_shape):
     out = Dense(n_actions, activation="softmax", activity_regularizer=l2(0.001))(hidden)
 
     actor = Model([inp, inp2], out)
-    actor.compile(loss=maximization, optimizer=optimizers.Adam(0.0005))
+    actor.compile(loss=maximization, optimizer=Adam(0.0005))
 
     # Build the critic
     inp = Input(inp_shape)
@@ -59,6 +60,6 @@ def build_models(inp_shape):
     out = Dense(1, activation="linear")(hidden)
 
     critic = Model([inp, inp2], out)
-    critic.compile(loss="MSE", optimizer=optimizers.Adam(0.0001))
+    critic.compile(loss="MSE", optimizer=Adam(0.0001))
 
     return actor, critic
