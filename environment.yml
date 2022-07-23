@@ -239,6 +239,7 @@ dependencies:
     - requests-oauthlib==1.3.1
     - rsa==4.8
     - s3transfer==0.5.1
+    - s3transfer==0.5.1
     - scikit-learn==1.0.2
     - scipy==1.8.0
     - send2trash==1.8.0

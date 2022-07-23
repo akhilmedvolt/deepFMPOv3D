@@ -20,24 +20,24 @@ def predict_score(mol):
 if __name__ == "__main__":
     s3 = S3()
 
-    # Downloading & Extracting Data
-    # file = f"graphinvent/{DATASET_NAME}/generated/generated_{DATASET_NAME}.csv" # Actual Location
-    file = f"graphinvent/{DATASET_NAME}/generated_smiles_{DATASET_NAME}.csv"  # Temporary Location
-    file_loc = f"./Data/generated_smiles_{DATASET_NAME}.csv"
-    s3.download_file(
-        bucket=NCE_BUCKET, key="dynamic/" + file, download_path=file_loc
-    )
-    csv_to_smi(file_loc)
-    os.remove(file_loc)
-
-    # Downloading & Extracting Models
-    file = f"chemprop/chemprop_{DATASET_NAME}.zip"
-    file_loc = f"./data_models/chemprop_{DATASET_NAME}.zip"
-    s3.download_file(
-        bucket=NCE_BUCKET, key="dynamic/" + file, download_path=file_loc
-    )
-    unzip(file_loc, f"./data_models/chemprop/{DATASET_NAME}")
-    os.remove(file_loc)
+    # # Downloading & Extracting Data
+    # # file = f"graphinvent/{DATASET_NAME}/generated/generated_{DATASET_NAME}.csv" # Actual Location
+    # file = f"graphinvent/{DATASET_NAME}/generated_smiles_{DATASET_NAME}.csv"  # Temporary Location
+    # file_loc = f"./Data/generated_smiles_{DATASET_NAME}.csv"
+    # s3.download_file(
+    #     bucket=NCE_BUCKET, key="dynamic/" + file, download_path=file_loc
+    # )
+    # csv_to_smi(file_loc)
+    # os.remove(file_loc)
+    #
+    # # Downloading & Extracting Models
+    # file = f"chemprop/chemprop_{DATASET_NAME}.zip"
+    # file_loc = f"./data_models/chemprop_{DATASET_NAME}.zip"
+    # s3.download_file(
+    #     bucket=NCE_BUCKET, key="dynamic/" + file, download_path=file_loc
+    # )
+    # unzip(file_loc, f"./data_models/chemprop/{DATASET_NAME}")
+    # os.remove(file_loc)
 
     os.system("python deepFMPO.py -f ./Data/molecules.smi -l ./Data/lead.smi -o results.sdf")
 
