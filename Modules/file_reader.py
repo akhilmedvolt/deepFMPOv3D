@@ -14,9 +14,9 @@ def read_file(file_name, drop_first=True):
                 continue
             l = l.strip().split(",")[0]
             smi = drop_salt(l.strip())
-            print('reading', smi)
+            print("reading", smi)
             if "/" in smi:
-                print(smi, 'discarded')
+                print(smi, "discarded")
             else:
                 molObjects.append(Chem.MolFromSmiles(smi))
                 mol_list.append(smi)

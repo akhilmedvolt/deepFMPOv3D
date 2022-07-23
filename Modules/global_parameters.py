@@ -20,30 +20,30 @@ N_LSTM = 32  # Times 2 neurons, since there are both a forward and a backward pa
 
 # RL training
 GAMMA = 0.95
-BATCH_SIZE = 512
-EPOCHS = 1000
-TIMES = 5
+BATCH_SIZE = 50
+EPOCHS = 8
+TIMES = 2
 
 methodPsi4 = None
 basisPsi4 = None
-partialCharges = 'gasteiger'
+partialCharges = "gasteiger"
 
 # Descriptors range
 
-MW_upper_limit = 420
-MW_lower_limit = 320
-
-logp_upper_limit = 4.3
-logp_lower_limit = 2.3
-
-TPSA_upper_limit = 65
-TPSA_lower_limit = 45
+# MW_upper_limit = 420
+# MW_lower_limit = 320
+#
+# logp_upper_limit = 4.3
+# logp_lower_limit = 2.3
+#
+# TPSA_upper_limit = 65
+# TPSA_lower_limit = 45
 
 dock_score_upper_limit = -9
-dock_score_lower_limit = -11
+dock_score_lower_limit = -14
 
 qed_upper_limit = 0.8
 qed_lower_limit = 0.4
 
-sas_score_upper_limit = 7
-sas_score_lower_limit = 3
+sas_score_upper_limit = 6
+sas_score_lower_limit = 2

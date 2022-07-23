@@ -12,8 +12,7 @@ import rdkit.Chem as Chem
 from keras.layers import LeakyReLU, Bidirectional, Multiply
 from keras.regularizers import l2
 from keras.layers import Concatenate, Flatten, Softmax
-from global_parameters import MAX_FRAGMENTS, MAX_SWAP, N_DENSE, \
-    N_DENSE2, N_LSTM
+from global_parameters import MAX_FRAGMENTS, MAX_SWAP, N_DENSE, N_DENSE2, N_LSTM
 
 #
 
@@ -33,7 +32,9 @@ n_actions = MAX_FRAGMENTS * MAX_SWAP + 1
 def build_models(inp_shape):
     # Build the actor
     inp = Input(inp_shape)
-    hidden_inp = LeakyReLU(0.1)(TimeDistributed(Dense(N_DENSE, activation="linear"))(inp))
+    hidden_inp = LeakyReLU(0.1)(
+        TimeDistributed(Dense(N_DENSE, activation="linear"))(inp)
+    )
     hidden = LSTM(N_LSTM, return_sequences=True)(hidden_inp)
     hidden = Flatten()(hidden)
 

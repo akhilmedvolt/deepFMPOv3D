@@ -17,7 +17,7 @@ import psi4
 
 # Get a martix containing the similarity of different fragments
 def get_dist_matrix(fragments):
-    psi4.set_memory('10 GB')
+    psi4.set_memory("10 GB")
     id_dict = {}
 
     ms = []
@@ -30,7 +30,7 @@ def get_dist_matrix(fragments):
         id_dict[i] = smi
         i += 1
         list_of_fragments.append(smi)
-    df = pd.DataFrame(list_of_fragments, columns=['smile'])
+    df = pd.DataFrame(list_of_fragments, columns=["smile"])
     num_cores = 500
 
     def get_similarity(smiles):
@@ -40,13 +40,18 @@ def get_dist_matrix(fragments):
             os.mkdir(str(smiles_name))
             os.chdir(str(smiles_name))
             try:
-                print('calculating sim_esp for', str(smiles))
-                sim_esp = similarity(smiles, df['smile'].iloc[[i]].item(), partialCharges=partialCharges,
-                                     methodPsi4=methodPsi4, basisPsi4=basisPsi4)
+                print("calculating sim_esp for", str(smiles))
+                sim_esp = similarity(
+                    smiles,
+                    df["smile"].iloc[[i]].item(),
+                    partialCharges=partialCharges,
+                    methodPsi4=methodPsi4,
+                    basisPsi4=basisPsi4,
+                )
                 l.append(float(sim_esp))
             except:
                 l.append(0)
-            os.chdir('../')
+            os.chdir("../")
             shutil.rmtree(str(smiles_name))
         return l
 
@@ -55,10 +60,12 @@ def get_dist_matrix(fragments):
 
     ddf = dd.from_pandas(df, npartitions=num_cores)
 
-    df["similarity_vector"] = ddf.map_partitions(function_for_dask, meta='float').compute(scheduler='processes')
+    df["similarity_vector"] = ddf.map_partitions(
+        function_for_dask, meta="float"
+    ).compute(scheduler="processes")
     l = []
 
-    for i in df['similarity_vector']:
+    for i in df["similarity_vector"]:
         l.append(i)
     distance_matrix = np.array(l)
     np.fill_diagonal(distance_matrix, 0)
@@ -71,8 +78,12 @@ def find_pairs(distance_matrix):
     left = np.ones(distance_matrix.shape[0])
     pairs = []
 
-    candidates = sorted(zip(distance_matrix.max(1), zip(range(distance_matrix.shape[0]),
-                                                        distance_matrix.argmax(1))))
+    candidates = sorted(
+        zip(
+            distance_matrix.max(1),
+            zip(range(distance_matrix.shape[0]), distance_matrix.argmax(1)),
+        )
+    )
     use_next = []
 
     while len(candidates) > 0:
@@ -178,7 +189,8 @@ def encode_list(mols, encodings):
         for j in range(X_mat.shape[1]):
             if j < len(es):
                 e = np.asarray([int(c) for c in es[j]])
-                if not len(e): continue
+                if not len(e):
+                    continue
 
                 X_mat[i, j, 0] = 1
                 X_mat[i, j, 1:] = e

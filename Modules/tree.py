@@ -1,7 +1,7 @@
 # Simple implementaion of a binary tree.
 
-class Tree(object):
 
+class Tree(object):
     def __init__(self, left=None, right=None, value=None):
         self.left = left
         self.right = right

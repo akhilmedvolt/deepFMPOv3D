@@ -32,8 +32,10 @@ def okToBreak(bond):
 
     if not (begin_atom.IsInRing() or end_atom.IsInRing()):
         return False
-    elif begin_atom.GetAtomicNum() >= MOL_SPLIT_START or \
-            end_atom.GetAtomicNum() >= MOL_SPLIT_START:
+    elif (
+        begin_atom.GetAtomicNum() >= MOL_SPLIT_START
+        or end_atom.GetAtomicNum() >= MOL_SPLIT_START
+    ):
         return False
     else:
         return True
@@ -77,12 +79,28 @@ def spf(mol, split_id):
 #   molecule as was given when splitting the molecule
 def create_chain(splits):
     splits_ids = np.asarray(
-        [sorted([a.GetAtomicNum() for a in m.GetAtoms()
-                 if a.GetAtomicNum() >= MOL_SPLIT_START]) for m in splits])
+        [
+            sorted(
+                [
+                    a.GetAtomicNum()
+                    for a in m.GetAtoms()
+                    if a.GetAtomicNum() >= MOL_SPLIT_START
+                ]
+            )
+            for m in splits
+        ]
+    )
 
-    splits_ids = \
-        [sorted([a.GetAtomicNum() for a in m.GetAtoms()
-                 if a.GetAtomicNum() >= MOL_SPLIT_START]) for m in splits]
+    splits_ids = [
+        sorted(
+            [
+                a.GetAtomicNum()
+                for a in m.GetAtoms()
+                if a.GetAtomicNum() >= MOL_SPLIT_START
+            ]
+        )
+        for m in splits
+    ]
 
     splits2 = []
     mv = np.max(splits_ids)
@@ -101,8 +119,7 @@ def create_chain(splits):
     while len(look_for) > 0:
         sid = look_for.pop()
         join_order.append(sid)
-        next_mol = [i for i in range(len(splits_ids))
-                    if sid in splits_ids[i]]
+        next_mol = [i for i in range(len(splits_ids)) if sid in splits_ids[i]]
 
         if len(next_mol) == 0:
             break
@@ -153,16 +170,21 @@ def get_join_list(mol):
                 join.append(None)
 
             b = a.GetBonds()[0]
-            ja = b.GetBeginAtom() if b.GetBeginAtom().GetAtomicNum() < MOL_SPLIT_START else \
-                b.GetEndAtom()
+            ja = (
+                b.GetBeginAtom()
+                if b.GetBeginAtom().GetAtomicNum() < MOL_SPLIT_START
+                else b.GetEndAtom()
+            )
             join[an - MOL_SPLIT_START] = ja.GetIdx()
             rem[an - MOL_SPLIT_START] = a.GetIdx()
             bonds[an - MOL_SPLIT_START] = b.GetBondType()
             a.SetAtomicNum(0)
 
-    return [x for x in join if x is not None], \
-           [x for x in bonds if x is not None], \
-           [x for x in rem if x is not None]
+    return (
+        [x for x in join if x is not None],
+        [x for x in bonds if x is not None],
+        [x for x in rem if x is not None],
+    )
 
 
 # Join a list of fragments toghether into a molecule

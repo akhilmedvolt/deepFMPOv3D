@@ -1,6 +1,6 @@
 import sys
 
-sys.path.insert(0, './Modules/')
+sys.path.insert(0, "./Modules/")
 
 from Modules.argsPassing import read_args
 from Modules.Show_Epoch_new import write_results
@@ -10,12 +10,19 @@ def main(fragment_file, lead_file, args):
     import numpy as np
     from Modules.file_reader import read_file
     from Modules.mol_utils import get_fragments
-    from Modules.build_encoding import get_encodings, encode_molecule, decode_molecule, encode_list, save_decodings
+    from Modules.build_encoding import (
+        get_encodings,
+        encode_molecule,
+        decode_molecule,
+        encode_list,
+        save_decodings,
+    )
     from Modules.models import build_models
     from Modules.training import train
     from Modules.rewards import clean_good
     from rdkit import rdBase
-    rdBase.DisableLog('rdApp.error')
+
+    rdBase.DisableLog("rdApp.error")
 
     print("Reading files")
     fragment_mols = read_file(fragment_file)
@@ -29,7 +36,9 @@ def main(fragment_file, lead_file, args):
     encodings, decodings = get_encodings(fragments)
     save_decodings(decodings)
 
-    lead_mols = np.asarray(fragment_mols[-len(lead_mols):])[used_mols[-len(lead_mols):]]
+    lead_mols = np.asarray(fragment_mols[-len(lead_mols) :])[
+        used_mols[-len(lead_mols) :]
+    ]
 
     X = encode_list(lead_mols, encodings)
 

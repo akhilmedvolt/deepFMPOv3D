@@ -11,7 +11,9 @@ from global_parameters import qed_lower_limit
 from global_parameters import sas_score_upper_limit
 from global_parameters import sas_score_lower_limit
 
-from Modules.dock_predict import predict_score
+from utils import *
+from run_deepfmpo import *
+
 from data_models.rdkit_sa.sa_score import calculate_sascore
 
 # Cache evaluated molecules (rewards are only calculated once)
@@ -24,8 +26,14 @@ def modify_fragment(f, swap):
 
 
 def get_key(fs):
-    return tuple([np.sum([(int(x) * 2 ** (len(a) - y))
-                          for x, y in zip(a, range(len(a)))]) if a[0] == 1 else 0 for a in fs])
+    return tuple(
+        [
+            np.sum([(int(x) * 2 ** (len(a) - y)) for x, y in zip(a, range(len(a)))])
+            if a[0] == 1
+            else 0
+            for a in fs
+        ]
+    )
 
 
 # Main function for the evaluation of molecules.
@@ -39,7 +47,7 @@ def evaluate_chem_mol(mol):
             True,
             dock_score_lower_limit < dock_score < dock_score_upper_limit,
             qed_lower_limit < qed < qed_upper_limit,
-            sas_score_lower_limit < sas_score < sas_score_upper_limit
+            sas_score_lower_limit < sas_score < sas_score_upper_limit,
         ]
     except:
         ret_val = [False] * 4

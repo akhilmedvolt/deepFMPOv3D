@@ -1,4 +1,5 @@
 import sys
+
 # sys.path.insert(0, './Modules/')
 
 from global_parameters import EPOCHS
@@ -17,7 +18,9 @@ import argparse
 from rdkit import rdBase
 import pandas as pd
 
-rdBase.DisableLog('rdApp.error')
+from rdkit.Chem import AllChem
+
+rdBase.DisableLog("rdApp.error")
 pd.options.mode.chained_assignment = None
 
 from argsPassing import read_args
@@ -39,28 +42,30 @@ def main(epoch):
     out_mols = np.load("History/out-{}.npy".format(epoch))
     in_mols = [decode(m, decodings2) for m in in_mols]
     out_mols = [safe_decode(m, decodings2) for m in out_mols]
-    use = [(not out_mols[i] is None) and \
-           Chem.MolToSmiles(out_mols[i]) != Chem.MolToSmiles(in_mols[i])
-           for i in range(len(out_mols))]
+    use = [
+        (not out_mols[i] is None)
+        and Chem.MolToSmiles(out_mols[i]) != Chem.MolToSmiles(in_mols[i])
+        for i in range(len(out_mols))
+    ]
 
     plot_mols = [[m1, m2] for m1, m2, u in zip(in_mols, out_mols, use) if u]
 
-    df = pd.DataFrame(columns=['Name'])
+    df = pd.DataFrame(columns=["Name"])
     l_in = []
     l_out = []
     for i in plot_mols:
         l_in.append(Chem.MolToSmiles(i[0]))
         l_out.append(Chem.MolToSmiles(i[1]))
 
-    df['in_smiles'] = l_in
-    df['out_smiles'] = l_out
+    df["in_smiles"] = l_in
+    df["out_smiles"] = l_out
 
     Name = []
     for i in range(len(l_in)):
         Name.append(epoch)
-    df['Name'] = Name
+    df["Name"] = Name
 
-    df.drop_duplicates(subset=['out_smiles'], inplace=True)
+    df.drop_duplicates(subset=["out_smiles"], inplace=True)
     return df
 
 
@@ -82,15 +87,18 @@ def calc_tpsa(mol):
 def check_smile(smi):
     m = Chem.MolFromSmiles(smi)
     if m is None:
-        check = 'invalid'
+        check = "invalid"
     else:
-        check = 'ok'
+        check = "ok"
     return check
 
 
 def calc_espsim(smi_ref, smi_mol):
-    mol_ref = Chem.rdmolops.AddHs(Chem.MolFromSmiles(smi_ref))
-    mol_mol = Chem.rdmolops.AddHs(Chem.MolFromSmiles(smi_mol))
+    mol_ref = Chem.AddHs(Chem.MolFromSmiles(smi_ref))
+    mol_mol = Chem.AddHs(Chem.MolFromSmiles(smi_mol))
+    AllChem.EmbedMolecule(mol_ref, useRandomCoords=True)
+    AllChem.EmbedMolecule(mol_mol, useRandomCoords=True)
+
     simShape, simEsp = EmbedAlignScore(mol_ref, mol_mol)
     return simEsp[0]
 
@@ -103,30 +111,56 @@ def write_results(name_of_results):
         df = main(i)
         df_list.append(df)
     df = pd.concat(df_list)
-    PandasTools.AddMoleculeColumnToFrame(df, smilesCol='out_smiles', molCol='Mol_out', includeFingerprints=False)
+    PandasTools.AddMoleculeColumnToFrame(
+        df, smilesCol="out_smiles", molCol="Mol_out", includeFingerprints=False
+    )
 
-    df['check'] = df.out_smiles.apply(check_smile)
-    df = df[df.check != 'invalid']
-    del df['check']
+    df["check"] = df.out_smiles.apply(check_smile)
+    df = df[df.check != "invalid"]
+    del df["check"]
 
-    df['logP'] = df.Mol_out.apply(calc_logp)
-    df['TPSA'] = df.Mol_out.apply(calc_tpsa)
-    df['MolWT'] = df.Mol_out.apply(calc_molWT)
+    df["logP"] = df.Mol_out.apply(calc_logp)
+    df["TPSA"] = df.Mol_out.apply(calc_tpsa)
+    df["MolWT"] = df.Mol_out.apply(calc_molWT)
 
-    PandasTools.WriteSDF(df, name_of_results, molColName='Mol_out', idName=None, allNumeric=False,
-                         properties=list(df.columns))
+    PandasTools.WriteSDF(
+        df,
+        name_of_results,
+        molColName="Mol_out",
+        idName=None,
+        allNumeric=False,
+        properties=list(df.columns),
+    )
     header = ["Name", "in_smiles", "out_smiles", "MolWT", "logP", "TPSA"]
 
-    df_2 = df.drop_duplicates(subset=['out_smiles'])
+    df_2 = df.drop_duplicates(subset=["out_smiles"])
+    df_2.to_csv("temp_out.csv")  # Temporary before espsim
+    print("Df2 Saved")
 
     l = []
     for i in range(len(df_2)):
-        l.append(calc_espsim(df_2['out_smiles'].iloc[[i]].item(), df_2['in_smiles'].iloc[[i]].item()))
+        try:
+            l.append(
+                calc_espsim(
+                    df_2["out_smiles"].iloc[[i]].item(), df_2["in_smiles"].iloc[[i]].item()
+                )
+            )
+            print("esp calculated")
+            print(l[-1])
+        except:
+            l.append(0.0)
+            print("esp error")
 
-    df_2['esp_sim'] = l
+    df_2["esp_sim"] = pd.Series(l)
 
-    df_2.drop('Name', axis=1, inplace=True)
+    df_2.drop("Name", axis=1, inplace=True)
 
-    PandasTools.WriteSDF(df_2, result_name_uniq, molColName='Mol_out', idName=None, allNumeric=False,
-                         properties=list(df_2.columns))
+    PandasTools.WriteSDF(
+        df_2,
+        result_name_uniq,
+        molColName="Mol_out",
+        idName=None,
+        allNumeric=False,
+        properties=list(df_2.columns),
+    )
     header = ["in_smiles", "out_smiles", "MolWT", "logP", "TPSA", "ESP_sim"]
