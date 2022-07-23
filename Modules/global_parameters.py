@@ -21,8 +21,8 @@ N_LSTM = 32  # Times 2 neurons, since there are both a forward and a backward pa
 # RL training
 GAMMA = 0.95
 BATCH_SIZE = 50
-EPOCHS = 8
-TIMES = 2
+EPOCHS = 100
+TIMES = 3
 
 methodPsi4 = None
 basisPsi4 = None
